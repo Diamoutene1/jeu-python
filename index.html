@@ -47,12 +47,12 @@
             margin: 20px;
             border: 2px solid #444;
             border-radius: 10px;
-            background-color: #222;
+            position: relative;
         }
 
         canvas {
             border: 1px solid #ffffff;
-            background-color: #000000;
+            background-color: #000000; /* Fond noir pour la zone de jeu */
         }
 
         #gol-stats, #snake-stats {
@@ -80,9 +80,9 @@
             <h2>Jeu de la Vie</h2>
             <canvas id="gol-canvas" width="400" height="400"></canvas>
             <div id="gol-controls">
-                <button onclick="toggleGame()">Démarrer/Arrêter</button>
-                <button onclick="resetGame()">Réinitialiser</button>
-                <button onclick="changeSpeed()">Vitesse: Normale</button>
+                <button onclick="toggleConwayGame()">Démarrer/Arrêter</button>
+                <button onclick="resetConwayGame()">Réinitialiser</button>
+                <button onclick="changeConwaySpeed()">Vitesse: Normale</button>
             </div>
             <div id="gol-stats"></div>
         </div>
@@ -92,24 +92,18 @@
             <h2>Jeu de Snake</h2>
             <canvas id="snake-canvas" width="400" height="400"></canvas>
             <div id="snake-controls">
-                <button onclick="restartGame()">Redémarrer</button>
+                <button onclick="startSnakeGame()">Démarrer</button>
+                <button onclick="restartSnakeGame()" id="restart-snake" style="display:none;">Redémarrer</button>
             </div>
             <div id="snake-stats"></div>
         </div>
 
-        <!-- Ajout du footer avec les droits d'auteur -->
         <footer>
             &copy; Zana Diamoutene. Tous droits réservés.
         </footer>
     </div>
 
     <script>
-        // Fonction pour afficher le jeu sélectionné
-        function showGame(gameId) {
-            document.getElementById('game-of-life').style.display = gameId === 'game-of-life' ? 'block' : 'none';
-            document.getElementById('snake-game').style.display = gameId === 'snake-game' ? 'block' : 'none';
-        }
-
         // Jeu de la Vie de Conway
         class ConwayGame {
             constructor(canvasId, statsId) {
@@ -124,13 +118,10 @@
                 this.updateStats();
                 this.drawGrid();
                 this.canvas.addEventListener('click', this.handleClick.bind(this));
-                document.querySelector('#gol-controls button:nth-child(1)').addEventListener('click', this.toggleGame.bind(this));
-                document.querySelector('#gol-controls button:nth-child(2)').addEventListener('click', this.resetGame.bind(this));
-                document.querySelector('#gol-controls button:nth-child(3)').addEventListener('click', this.changeSpeed.bind(this));
             }
 
             createRandomGrid() {
-                return Array.from({ length: this.width }, () => 
+                return Array.from({ length: this.width }, () =>
                     Array.from({ length: this.height }, () => Math.random() < 0.5 ? 1 : 0)
                 );
             }
@@ -164,11 +155,10 @@
             }
 
             changeSpeed() {
-                const speedButtons = document.querySelector('#gol-controls button');
                 const speeds = [100, 50, 200];
                 const currentSpeed = speeds.indexOf(this.interval);
                 this.interval = speeds[(currentSpeed + 1) % speeds.length];
-                speedButtons[2].textContent = `Vitesse: ${['Normale', 'Rapide', 'Lente'][this.interval / 100]}`;
+                document.querySelector('#gol-controls button:nth-child(3)').textContent = `Vitesse: ${['Normale', 'Rapide', 'Lente'][this.interval / 100]}`;
                 if (this.running) {
                     clearInterval(this.intervalId);
                     this.intervalId = setInterval(this.step.bind(this), this.interval);
@@ -237,24 +227,27 @@
                 this.snake = [{ x: 10, y: 10 }];
                 this.food = { x: Math.floor(Math.random() * this.width), y: Math.floor(Math.random() * this.height) };
                 this.direction = 'RIGHT';
-                this.running = true;
+                this.running = false;
                 this.score = 0;
-                this.intervalId = setInterval(this.update.bind(this), 200);
+                this.intervalId = null;
                 document.addEventListener('keydown', this.changeDirection.bind(this));
-                document.querySelector('#snake-controls button').addEventListener('click', this.restartGame.bind(this));
+            }
+
+            startGame() {
+                this.running = true;
+                this.intervalId = setInterval(this.update.bind(this), 200);
+                document.querySelector('#snake-controls button:nth-child(1)').style.display = 'none';
+                document.querySelector('#snake-controls button:nth-child(2)').style.display = 'none';
             }
 
             draw() {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                // Draw snake
                 this.ctx.fillStyle = 'green';
                 for (let segment of this.snake) {
                     this.ctx.fillRect(segment.x * this.cellSize, segment.y * this.cellSize, this.cellSize, this.cellSize);
                 }
-                // Draw food
                 this.ctx.fillStyle = 'red';
                 this.ctx.fillRect(this.food.x * this.cellSize, this.food.y * this.cellSize, this.cellSize, this.cellSize);
-                // Update stats
                 this.stats.textContent = `Score: ${this.score}`;
             }
 
@@ -265,7 +258,6 @@
                 if (this.direction === 'LEFT') head.x--;
                 if (this.direction === 'RIGHT') head.x++;
 
-                // Check for collisions
                 if (head.x < 0 || head.x >= this.width || head.y < 0 || head.y >= this.height || this.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
                     this.gameOver();
                     return;
@@ -273,7 +265,6 @@
 
                 this.snake.unshift(head);
 
-                // Check if snake ate the food
                 if (head.x === this.food.x && head.y === this.food.y) {
                     this.score++;
                     this.food = { x: Math.floor(Math.random() * this.width), y: Math.floor(Math.random() * this.height) };
@@ -300,6 +291,8 @@
                 clearInterval(this.intervalId);
                 this.intervalId = setInterval(this.update.bind(this), 200);
                 this.draw();
+                document.querySelector('#snake-controls button:nth-child(1)').style.display = 'none';
+                document.querySelector('#snake-controls button:nth-child(2)').style.display = 'none';
             }
 
             gameOver() {
@@ -309,13 +302,40 @@
                 this.ctx.fillStyle = 'red';
                 this.ctx.font = '24px Arial';
                 this.ctx.fillText('Game Over', this.canvas.width / 2 - 60, this.canvas.height / 2);
+                document.querySelector('#snake-controls button:nth-child(1)').style.display = 'none';
+                document.querySelector('#snake-controls button:nth-child(2)').style.display = 'inline-block';
             }
         }
 
         // Initialisation des jeux
         function initGames() {
-            new ConwayGame('gol-canvas', 'gol-stats');
-            new SnakeGame('snake-canvas', 'snake-stats');
+            conwayGame = new ConwayGame('gol-canvas', 'gol-stats');
+            snakeGame = new SnakeGame('snake-canvas', 'snake-stats');
+        }
+
+        function showGame(gameId) {
+            document.getElementById('game-of-life').style.display = gameId === 'game-of-life' ? 'block' : 'none';
+            document.getElementById('snake-game').style.display = gameId === 'snake-game' ? 'block' : 'none';
+        }
+
+        function toggleConwayGame() {
+            conwayGame.toggleGame();
+        }
+
+        function resetConwayGame() {
+            conwayGame.resetGame();
+        }
+
+        function changeConwaySpeed() {
+            conwayGame.changeSpeed();
+        }
+
+        function startSnakeGame() {
+            snakeGame.startGame();
+        }
+
+        function restartSnakeGame() {
+            snakeGame.restartGame();
         }
 
         // Initialisation des jeux au chargement de la page
