@@ -3,185 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeux</title>
+    <title>Jeux : Vie de Conway et Snake</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: #ffffff;
+            text-align: center;
             margin: 0;
             padding: 0;
+        }
+        #game-container {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            height: 100vh;
+            padding: 20px;
         }
-
-        header {
-            text-align: center;
-            margin-bottom: 20px;
+        #game-of-life, #snake-game {
+            display: none;
         }
-
-        h1 {
-            font-size: 2.5em;
-            color: #ff5722;
-            margin: 0;
+        canvas {
+            border: 1px solid #000;
         }
-
-        .container {
-            width: 90%;
-            max-width: 1200px;
+        .controls {
+            margin-top: 10px;
         }
-
-        .section {
-            margin: 20px 0;
+        .control-button {
+            margin: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        #snake-controls-mobile {
+            display: none; /* Cacher les contrôles tactiles */
+        }
+        #welcome-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
             padding: 20px;
             border-radius: 10px;
-            background-color: #1e1e1e;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-            display: none;
-        }
-
-        #game-selector {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        button {
-            background-color: #333;
-            color: #ffffff;
-            border: none;
-            padding: 10px 20px;
-            margin: 5px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #555;
-        }
-
-        canvas {
-            border: 2px solid #ffffff;
-            background-color: #000000;
-        }
-
-        #gol-controls, #snake-controls {
-            margin-top: 10px;
-            text-align: center;
-        }
-
-        .control-button {
-            background-color: #333;
-            color: #ffffff;
-            border: none;
-            padding: 10px;
-            margin: 5px;
-            cursor: pointer;
-            border-radius: 5px;
-            transition: background-color 0.3s;
-        }
-
-        .control-button:hover {
-            background-color: #555;
-        }
-
-        .stats {
-            margin-top: 10px;
-            font-size: 18px;
-        }
-
-        footer {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #888888;
-        }
-
-        #welcome-message {
-            display: none;
-            color: #00FF00;
             font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            margin: 20px;
-        }
-
-        #snake-controls-mobile {
             display: none;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-
-        #snake-controls-mobile .control-button {
-            font-size: 1.5em;
-            width: 50px;
-            height: 50px;
-            margin: 5px;
-        }
-
-        @media (max-width: 768px) {
-            #snake-controls {
-                display: none;
-            }
-            #snake-controls-mobile {
-                display: flex;
-            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Jeux</h1>
-    </header>
-    <div class="container">
-        <div id="game-selector">
-            <button onclick="showGame('game-of-life')">Jeu de la Vie</button>
-            <button onclick="showGame('snake-game')">Jeu de Snake</button>
-        </div>
+    <div id="game-container">
+        <button onclick="showGame('game-of-life')">Jeu de la Vie de Conway</button>
+        <button onclick="showGame('snake-game')">Jeu de Snake</button>
 
-        <!-- Zone pour le Jeu de la Vie -->
-        <div id="game-of-life" class="section">
-            <h2>Jeu de la Vie</h2>
+        <!-- Jeu de la Vie de Conway -->
+        <div id="game-of-life">
+            <h1>Jeu de la Vie de Conway</h1>
             <canvas id="gol-canvas" width="400" height="400"></canvas>
-            <div id="gol-controls">
-                <button class="control-button" onclick="toggleGame()">Démarrer/Arrêter</button>
-                <button class="control-button" onclick="resetGame()">Réinitialiser</button>
-                <button class="control-button" onclick="changeSpeed()">Vitesse: Normale</button>
-                <button class="control-button" onclick="pauseGame()">Pause</button>
+            <div id="gol-stats"></div>
+            <div id="gol-controls" class="controls">
+                <button>Jouer/Pause</button>
+                <button>Réinitialiser</button>
+                <button>Vitesse: Normale</button>
+                <button>Pause</button>
             </div>
-            <div id="gol-stats" class="stats"></div>
         </div>
 
-        <!-- Zone pour le Jeu de Snake -->
-        <div id="snake-game" class="section">
-            <h2>Jeu de Snake</h2>
+        <!-- Jeu de Snake -->
+        <div id="snake-game">
+            <h1>Jeu de Snake</h1>
             <canvas id="snake-canvas" width="400" height="400"></canvas>
-            <div id="snake-controls">
-                <button class="control-button" onclick="changeDirection('UP')">↑</button>
-                <button class="control-button" onclick="changeDirection('LEFT')">←</button>
-                <button class="control-button" onclick="changeDirection('RIGHT')">→</button>
-                <button class="control-button" onclick="changeDirection('DOWN')">↓</button>
-                <button class="control-button" onclick="restartGame()">Redémarrer</button>
+            <div id="snake-stats"></div>
+            <div id="snake-controls" class="controls">
+                <button data-direction="UP">↑</button>
+                <button data-direction="LEFT">←</button>
+                <button data-direction="DOWN">↓</button>
+                <button data-direction="RIGHT">→</button>
+                <button>Redémarrer</button>
             </div>
-            <div id="snake-controls-mobile">
-                <button class="control-button" onclick="changeDirection('UP')">↑</button>
-                <button class="control-button" onclick="changeDirection('LEFT')">←</button>
-                <button class="control-button" onclick="changeDirection('RIGHT')">→</button>
-                <button class="control-button" onclick="changeDirection('DOWN')">↓</button>
-                <button class="control-button" onclick="restartGame()">Redémarrer</button>
-            </div>
-            <div id="snake-stats" class="stats"></div>
         </div>
     </div>
-
-    <footer>
-        &copy; 2024 Zana Diamoutene. Tous droits réservés.
-    </footer>
-
-    <div id="welcome-message">Bienvenue dans le Jeu de Snake !</div>
+    <div id="welcome-message">Bienvenue au Jeu de Snake !</div>
 
     <script>
         // Fonction pour afficher la section sélectionnée
@@ -322,45 +221,53 @@
                 this.canvas = document.getElementById(canvasId);
                 this.ctx = this.canvas.getContext('2d');
                 this.stats = document.getElementById(statsId);
-                this.cellSize = 20;
-                this.width = this.canvas.width / this.cellSize;
-                this.height = this.canvas.height / this.cellSize;
+                this.width = this.canvas.width / 20;
+                this.height = this.canvas.height / 20;
                 this.snake = [{ x: 10, y: 10 }];
                 this.food = { x: Math.floor(Math.random() * this.width), y: Math.floor(Math.random() * this.height) };
                 this.direction = 'RIGHT';
                 this.running = true;
                 this.score = 0;
                 this.intervalId = setInterval(this.update.bind(this), 200);
-                document.addEventListener('keydown', this.changeDirection.bind(this));
-                document.querySelector('#snake-controls button:nth-child(5)').addEventListener('click', this.restartGame.bind(this));
-                this.showWelcomeMessage();
+                this.draw();
+                window.addEventListener('keydown', this.changeDirection.bind(this));
+                document.querySelector('#snake-controls button:last-child').addEventListener('click', this.restartGame.bind(this));
             }
 
             draw() {
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
                 this.ctx.fillStyle = 'green';
-                for (let segment of this.snake) {
-                    this.ctx.fillRect(segment.x * this.cellSize, segment.y * this.cellSize, this.cellSize, this.cellSize);
-                }
+                this.snake.forEach(segment => {
+                    this.ctx.fillRect(segment.x * 20, segment.y * 20, 20, 20);
+                });
                 this.ctx.fillStyle = 'red';
-                this.ctx.fillRect(this.food.x * this.cellSize, this.food.y * this.cellSize, this.cellSize, this.cellSize);
+                this.ctx.fillRect(this.food.x * 20, this.food.y * 20, 20, 20);
                 this.stats.textContent = `Score: ${this.score}`;
             }
 
             update() {
+                if (!this.running) return;
                 const head = { ...this.snake[0] };
                 if (this.direction === 'UP') head.y--;
                 if (this.direction === 'DOWN') head.y++;
                 if (this.direction === 'LEFT') head.x--;
                 if (this.direction === 'RIGHT') head.x++;
 
-                if (head.x < 0 || head.x >= this.width || head.y < 0 || head.y >= this.height || this.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                // Check for collisions with walls
+                if (head.x < 0 || head.x >= this.width || head.y < 0 || head.y >= this.height) {
+                    this.gameOver();
+                    return;
+                }
+
+                // Check for collisions with itself
+                if (this.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
                     this.gameOver();
                     return;
                 }
 
                 this.snake.unshift(head);
 
+                // Check for food collision
                 if (head.x === this.food.x && head.y === this.food.y) {
                     this.score++;
                     this.food = { x: Math.floor(Math.random() * this.width), y: Math.floor(Math.random() * this.height) };
@@ -372,10 +279,11 @@
             }
 
             changeDirection(event) {
-                if (event.key === 'ArrowUp' && this.direction !== 'DOWN') this.direction = 'UP';
-                if (event.key === 'ArrowDown' && this.direction !== 'UP') this.direction = 'DOWN';
-                if (event.key === 'ArrowLeft' && this.direction !== 'RIGHT') this.direction = 'LEFT';
-                if (event.key === 'ArrowRight' && this.direction !== 'LEFT') this.direction = 'RIGHT';
+                const direction = event.key || event.keyCode;
+                if (direction === 'ArrowUp' && this.direction !== 'DOWN') this.direction = 'UP';
+                if (direction === 'ArrowDown' && this.direction !== 'UP') this.direction = 'DOWN';
+                if (direction === 'ArrowLeft' && this.direction !== 'RIGHT') this.direction = 'LEFT';
+                if (direction === 'ArrowRight' && this.direction !== 'LEFT') this.direction = 'RIGHT';
             }
 
             restartGame() {
